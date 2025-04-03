@@ -92,7 +92,7 @@ class Dataset(torch.utils.data.Dataset):
             self.current_file = 0
                  
         self.remaining -= 1    
-        return {key: tensor[i%10000] for key, tensor in self.encodings.items()}  
+        return {key: tensor[i%1000] for key, tensor in self.encodings.items()}  
 
 
 
@@ -101,7 +101,7 @@ dataset = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][:300]
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=8)
 
 test_dataset = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][300:], tokenizer=tokenizer)
-valid_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4)
 
 
 from transformers import DistilBertForMaskedLM, DistilBertConfig
