@@ -1,5 +1,6 @@
 import glob
 import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 from pathlib import Path
 from tokenizers import BertWordPieceTokenizer
 from transformers import BertTokenizer
@@ -107,7 +108,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4)
 from transformers import DistilBertForMaskedLM, DistilBertConfig
 
 config = DistilBertConfig(
-    vocab_size=3000,
+    vocab_size=30000,
     max_position_embeddings=514
 )
 model = DistilBertForMaskedLM(config)
