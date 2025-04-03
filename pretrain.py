@@ -38,9 +38,9 @@ tokenizer.train(files=paths, vocab_size=30_000, min_frequency=1,
                     special_tokens=['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]'])
 
 
-tokenizer.save_model('tokeniser')
+tokenizer.save_model('mytokeniser')
 
-tokenizer = DistilBertTokenizerFast.from_pretrained('tokeniser', max_len=512)
+tokenizer = DistilBertTokenizerFast.from_pretrained('mytokeniser', max_len=512)
 tokenizer.save_pretrained("distilbert_tokenizer")
 
 assert len(tokenizer.vocab) == 30_000
