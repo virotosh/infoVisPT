@@ -113,11 +113,12 @@ config = DistilBertConfig(
 model = DistilBertForMaskedLM(config)
 
 
-
 from tqdm import tqdm
 epochs = 10
 optim = torch.optim.Adam(model.parameters(), lr=0.001)
 device = torch.device('cuda')
+
+model.to(device)
 
 for epoch in range(epochs):
     loop = tqdm(train_loader, leave=True)
