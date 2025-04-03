@@ -1,3 +1,23 @@
+from pathlib import Path
+import torch
+import time
+from pathlib import Path
+from transformers import DistilBertTokenizerFast
+import os
+from transformers import DistilBertConfig
+from transformers import DistilBertForMaskedLM
+from tokenizers import BertWordPieceTokenizer
+from tqdm.auto import tqdm
+from torch.optim import AdamW
+import torchtest
+from transformers import pipeline
+
+
+from distilbert import test_model
+from distilbert import Dataset
+
+import numpy as np
+
 import glob
 import os
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
@@ -20,9 +40,11 @@ tokenizer.train(files=paths, vocab_size=30_000, min_frequency=1,
 
 tokenizer.save_model('model')
 
-tokenizer = BertTokenizer.from_pretrained('model/')
+tokenizer = DistilBertTokenizerFast.from_pretrained('tokeniser', max_len=512)
+tokenizer.save_pretrained("distilbert_tokenizer")
 
-import torch
+assert len(tokenizer.vocab) == 30_000
+
 class Dataset(torch.utils.data.Dataset):
     """
     This class loads and preprocesses the given text data
@@ -99,13 +121,32 @@ class Dataset(torch.utils.data.Dataset):
 
 
 dataset = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][:300], tokenizer=tokenizer)
-train_loader = torch.utils.data.DataLoader(dataset, batch_size=8)
+loader = torch.utils.data.DataLoader(dataset, batch_size=8)
 
 test_dataset = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][300:], tokenizer=tokenizer)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4)
 
+i = iter(dataset)
 
-from transformers import DistilBertForMaskedLM, DistilBertConfig
+for j in range(10):
+    sample = next(i)
+    
+    input_ids = sample['input_ids']
+    attention_masks = sample['attention_mask']
+    labels = sample['labels']
+    
+    # check if the dimensions are right
+    assert input_ids.shape[0] == (512)
+    assert attention_masks.shape[0] == (512)
+    assert labels.shape[0] == (512)
+    
+    # if the input ids are not masked, the labels are the same as the input ids
+    assert np.array_equal(input_ids[input_ids != 4].numpy(),labels[input_ids != 4].numpy())
+    # input ids are zero if the attention masks are zero
+    assert np.all(input_ids[attention_masks == 0].numpy()==0)
+    # check if input contains masked tokens (we can't guarantee this 100% but this will apply) most likely
+    assert np.any(input_ids.numpy() == 4)
+print("Passed")
 
 config = DistilBertConfig(
     vocab_size=30000,
@@ -114,15 +155,30 @@ config = DistilBertConfig(
 model = DistilBertForMaskedLM(config)
 
 
-from tqdm import tqdm
-epochs = 1
-optim = torch.optim.Adam(model.parameters(), lr=0.001)
 device = torch.device('cuda')
 
 model.to(device)
 
+
+
+
+# get smaller dataset
+test_ds = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][:2], tokenizer=tokenizer)
+test_ds_loader = torch.utils.data.DataLoader(test_ds, batch_size=2)
+optim=torch.optim.Adam(model.parameters())
+
+from distilbert import test_model
+
+test_model(model, optim, test_ds_loader, device)
+
+# we use AdamW as the optimiser
+optim = AdamW(model.parameters(), lr=1e-4)
+
+
+epochs = 1
+
 for epoch in range(epochs):
-    loop = tqdm(train_loader, leave=True)
+    loop = tqdm(loader, leave=True)
     
     # set model to training mode
     model.train()
@@ -151,6 +207,10 @@ for epoch in range(epochs):
         loop.set_postfix(loss=loss.item())
         losses.append(loss.item())
         
+        del input_ids
+        del attention_mask
+        del labels
+        
     print("Mean Training Loss", np.mean(losses))
     losses = []
     loop = tqdm(test_loader, leave=True)
@@ -175,4 +235,8 @@ for epoch in range(epochs):
         loop.set_description(f'Epoch {epoch}')
         loop.set_postfix(loss=loss.item())
         losses.append(loss.item())
+        
+        del input_ids
+        del attention_mask
+        del labels
     print("Mean Test Loss", np.mean(losses))
