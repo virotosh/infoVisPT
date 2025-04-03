@@ -26,5 +26,5 @@ for sample in tqdm(ds['train']):
         ind += 1
 
 # write remaining samples to a file
-with open(f"data/text_{i}.txt", 'w', encoding='utf-8') as f:
+with open(f"data/text_{ind}.txt", 'w', encoding='utf-8') as f:
     f.write('\\n'.join(text))
