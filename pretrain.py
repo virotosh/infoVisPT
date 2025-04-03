@@ -12,7 +12,7 @@ tokenizer = BertWordPieceTokenizer(
         strip_accents=False,
         lowercase=True
 )
-tokenizer.train(files=paths, vocab_size=30_000, min_frequency=2,
+tokenizer.train(files=paths, vocab_size=30_000, min_frequency=1,
                     limit_alphabet=1000, wordpieces_prefix='##',
                     special_tokens=['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]'])
 
@@ -92,7 +92,7 @@ class Dataset(torch.utils.data.Dataset):
             self.current_file = 0
                  
         self.remaining -= 1    
-        return {key: tensor[i%1000] for key, tensor in self.encodings.items()}  
+        return {key: tensor[i%10000] for key, tensor in self.encodings.items()}  
 
 
 
@@ -107,14 +107,14 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4)
 from transformers import DistilBertForMaskedLM, DistilBertConfig
 
 config = DistilBertConfig(
-    vocab_size=30000,
+    vocab_size=3000,
     max_position_embeddings=514
 )
 model = DistilBertForMaskedLM(config)
 
 
 from tqdm import tqdm
-epochs = 10
+epochs = 1
 optim = torch.optim.Adam(model.parameters(), lr=0.001)
 device = torch.device('cuda')
 
