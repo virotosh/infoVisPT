@@ -8,7 +8,7 @@ class Dataset(torch.utils.data.Dataset):
         """
         This function initialises the object. It takes the given paths and tokeniser.
         """
-        # the last file might not have 100 samples, which makes it difficult to get the total length of the ds
+        # the last file might not have 10000 samples, which makes it difficult to get the total length of the ds
         self.paths = paths[:len(paths)-1]
         self.tokenizer = tokenizer
         self.data = self.read_file(self.paths[0])
@@ -20,7 +20,7 @@ class Dataset(torch.utils.data.Dataset):
         """
         returns the lenght of the ds
         """
-        return 100*len(self.paths)
+        return 10000*len(self.paths)
     
     def read_file(self, path):
         """
@@ -70,7 +70,7 @@ class Dataset(torch.utils.data.Dataset):
             self.current_file = 0
                  
         self.remaining -= 1    
-        return {key: tensor[i%100] for key, tensor in self.encodings.items()}  
+        return {key: tensor[i%10000] for key, tensor in self.encodings.items()}  
 
 def test_model(model, optim, test_ds_loader, device):
     """
