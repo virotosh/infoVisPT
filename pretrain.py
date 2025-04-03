@@ -38,7 +38,7 @@ tokenizer.train(files=paths, vocab_size=30_000, min_frequency=1,
                     special_tokens=['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]'])
 
 
-tokenizer.save_model('model')
+tokenizer.save_model('tokeniser')
 
 tokenizer = DistilBertTokenizerFast.from_pretrained('tokeniser', max_len=512)
 tokenizer.save_pretrained("distilbert_tokenizer")
@@ -95,7 +95,6 @@ test_ds = Dataset(paths = [str(x) for x in Path('data/').glob('**/*.txt')][:2], 
 test_ds_loader = torch.utils.data.DataLoader(test_ds, batch_size=2)
 optim=torch.optim.Adam(model.parameters())
 
-from distilbert import test_model
 
 test_model(model, optim, test_ds_loader, device)
 
