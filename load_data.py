@@ -20,7 +20,7 @@ for sample in tqdm(ds['train']):
     
     # if we processed 10000 samples, write them to a file and start over
     if len(text) == 10000:
-        with open(f"data/text_{i}.txt", 'w', encoding='utf-8') as f:
+        with open(f"data/text_{ind}.txt", 'w', encoding='utf-8') as f:
             f.write('\n'.join(text))
         text = []
         ind += 1
